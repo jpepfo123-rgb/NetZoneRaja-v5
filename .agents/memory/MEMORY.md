@@ -1,0 +1,1 @@
+- [CRM Project State](crm-state.md) — Net Zone CRM Dialer: what's done, what still needs native Android build (EAS)

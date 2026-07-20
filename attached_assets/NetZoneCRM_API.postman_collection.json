@@ -1,0 +1,99 @@
+{
+  "info": {
+    "name": "Net Zone CRM Dialer API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://net-zone-dialerzip--solankimadansi3.replit.app/api" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": { "method": "GET", "url": "{{baseUrl}}/healthz" }
+    },
+    {
+      "name": "Login (Admin)",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/auth/login",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\",\n  \"role\": \"admin\"\n}" }
+      }
+    },
+    {
+      "name": "Login (Agent)",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/auth/login",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"agent1\",\n  \"password\": \"agent123\",\n  \"role\": \"agent\"\n}" }
+      }
+    },
+    {
+      "name": "Get All Customers",
+      "request": { "method": "GET", "url": "{{baseUrl}}/customers" }
+    },
+    {
+      "name": "Get Customer by ID",
+      "request": { "method": "GET", "url": "{{baseUrl}}/customers/c1" }
+    },
+    {
+      "name": "Add Customer",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/customers",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"mobile\": \"9999999999\",\n  \"email\": \"test@example.com\",\n  \"address\": \"Mumbai\",\n  \"category\": \"New Lead\",\n  \"priority\": \"High\",\n  \"notes\": \"\",\n  \"agentId\": \"u1\"\n}" }
+      }
+    },
+    {
+      "name": "Update Customer",
+      "request": {
+        "method": "PUT", "url": "{{baseUrl}}/customers/c1",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Name\",\n  \"mobile\": \"9999999999\"\n}" }
+      }
+    },
+    {
+      "name": "Delete Customer",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/customers/c1" }
+    },
+    {
+      "name": "Get All Calls",
+      "request": { "method": "GET", "url": "{{baseUrl}}/calls" }
+    },
+    {
+      "name": "Get Calls by Customer",
+      "request": { "method": "GET", "url": "{{baseUrl}}/calls?customerId=c1" }
+    },
+    {
+      "name": "Log a Call",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/calls",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"c1\",\n  \"customerName\": \"Amit Patel\",\n  \"customerMobile\": \"9876543210\",\n  \"type\": \"Outgoing\",\n  \"duration\": \"2:30\",\n  \"durationSeconds\": 150,\n  \"agentName\": \"Admin User\",\n  \"agentId\": \"u1\",\n  \"remarks\": \"Follow-up done\"\n}" }
+      }
+    },
+    {
+      "name": "Get Remarks",
+      "request": { "method": "GET", "url": "{{baseUrl}}/remarks?customerId=c1" }
+    },
+    {
+      "name": "Add Remark",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/remarks",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"c1\",\n  \"text\": \"Customer interested in premium plan\",\n  \"agentName\": \"Admin User\",\n  \"isCallNote\": false\n}" }
+      }
+    },
+    {
+      "name": "Get Reminders",
+      "request": { "method": "GET", "url": "{{baseUrl}}/reminders?status=pending" }
+    },
+    {
+      "name": "Add Reminder",
+      "request": {
+        "method": "POST", "url": "{{baseUrl}}/reminders",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"c1\",\n  \"customerName\": \"Amit Patel\",\n  \"customerMobile\": \"9876543210\",\n  \"dateTime\": \"2026-07-18T10:00:00.000Z\",\n  \"notes\": \"Follow up tomorrow\",\n  \"status\": \"pending\"\n}" }
+      }
+    }
+  ]
+}

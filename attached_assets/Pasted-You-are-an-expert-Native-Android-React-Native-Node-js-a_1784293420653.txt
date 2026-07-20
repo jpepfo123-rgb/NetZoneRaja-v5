@@ -1,0 +1,178 @@
+You are an expert Native Android, React Native, Node.js and PostgreSQL developer.
+
+Build a production-ready CRM Dialer for Android.
+
+IMPORTANT:
+If the current project is Expo Managed Workflow, automatically migrate it to React Native Bare Workflow or Native Android wherever required. Do not ask for permission. Keep the existing UI.
+
+========================
+ANDROID FEATURES
+========================
+
+1. Login
+- Admin
+- Agent
+
+2. Dashboard
+- Today's Calls
+- Missed Calls
+- Follow-ups
+- Reminders
+- Total Customers
+
+3. Customer CRM
+- Name
+- Mobile
+- Alternate Number
+- Company
+- Address
+- City
+- Category
+- Notes
+- Last Call
+- Total Calls
+- Follow-up Date
+
+4. Read REAL Android Call Log
+- Incoming
+- Outgoing
+- Missed
+- Date
+- Time
+- Duration
+- Contact Name
+- Phone Number
+
+5. Required Android Permissions
+- READ_CALL_LOG
+- READ_CONTACTS
+- READ_PHONE_STATE
+- SYSTEM_ALERT_WINDOW
+- FOREGROUND_SERVICE
+- POST_NOTIFICATIONS
+- RECEIVE_BOOT_COMPLETED
+
+6. Incoming Call Popup
+Show automatically.
+Include:
+- Customer Name
+- Number
+- Category
+- Note
+- Reminder
+- WhatsApp
+- SMS
+- Save
+
+7. After Call Popup
+Open automatically after every call.
+Save:
+- Remark
+- Category
+- Follow-up
+- Reminder
+
+8. Call History Screen
+- Search
+- Filters
+- Today
+- Yesterday
+- This Week
+- Incoming
+- Outgoing
+- Missed
+
+9. Auto Sync
+Every new call automatically syncs.
+
+10. Offline Mode
+Store locally.
+Sync later when internet returns.
+
+========================
+SERVER
+========================
+
+Create complete Node.js + Express backend.
+
+Create PostgreSQL database.
+
+Create APIs:
+- Login
+- Customers
+- Calls
+- Notes
+- Categories
+- Reminders
+- Dashboard
+- Reports
+
+========================
+PC DASHBOARD
+========================
+
+Show:
+
+Live Calls
+
+Today's Calls
+
+Agent Performance
+
+Customer History
+
+Repeat Caller Detection
+
+Reports
+
+Search
+
+Excel Export
+
+PDF Export
+
+========================
+MULTI PHONE
+
+Support 5–50 Android phones.
+
+Every phone syncs automatically.
+
+========================
+SECURITY
+
+JWT Login
+
+Encrypted Password
+
+Role Permission
+
+========================
+DELIVERABLES
+
+Generate:
+
+Complete Source Code
+
+Database
+
+REST APIs
+
+Admin Dashboard
+
+Android App
+
+Gradle Configuration
+
+Android Manifest
+
+Native Modules
+
+Background Services
+
+Overlay Window
+
+Everything required to build and run the project.
+
+Do not use demo or mock data.
+Use real Android native APIs wherever possible.

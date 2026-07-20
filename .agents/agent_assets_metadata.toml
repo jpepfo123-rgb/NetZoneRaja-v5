@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "K0SdZbehoaicajmkP4mAc"
+uri = "file://attached_assets/NetZoneCRM_API.postman_collection.json"
+type = "unspecified"
+title = "Net Zone CRM Dialer — Postman Collection"
