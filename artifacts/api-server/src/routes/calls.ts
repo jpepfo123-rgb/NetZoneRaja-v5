@@ -11,10 +11,28 @@ router.get('/', async (req, res) => {
   try {
     const { customerId, agentId, type, filter, date, limit = '200' } = req.query as Record<string, string>;
 
+    // The JOIN uses two strategies:
+    //   1. Primary:   exact customer_id match
+    //   2. Fallback:  phone-number match (last 10 digits, digits only) when customer_id is NULL
+    // This ensures calls logged before a customer record existed are automatically linked
+    // once the customer is created.
     let sql = `
-      SELECT cl.*, c.name as customer_name_resolved, c.mobile as customer_mobile_resolved
+      SELECT cl.*,
+        COALESCE(c.name,     cl.customer_name)   AS customer_name_resolved,
+        COALESCE(c.mobile,   cl.customer_mobile)  AS customer_mobile_resolved,
+        c.id                                       AS matched_customer_id,
+        c.category                                 AS customer_category_live,
+        c.notes                                    AS customer_notes
       FROM calls cl
-      LEFT JOIN customers c ON cl.customer_id = c.id
+      LEFT JOIN customers c ON (
+        cl.customer_id = c.id
+        OR (
+          cl.customer_id IS NULL
+          AND RIGHT(regexp_replace(COALESCE(cl.phone_number, cl.customer_mobile, ''), '[^0-9]', '', 'g'), 10) != ''
+          AND RIGHT(regexp_replace(COALESCE(cl.phone_number, cl.customer_mobile, ''), '[^0-9]', '', 'g'), 10)
+            = RIGHT(regexp_replace(COALESCE(c.mobile, ''), '[^0-9]', '', 'g'), 10)
+        )
+      )
       WHERE 1=1
     `;
     const params: unknown[] = [];

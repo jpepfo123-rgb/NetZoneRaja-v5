@@ -5,6 +5,24 @@ import { requireAuth } from '../middlewares/auth';
 const router = Router();
 router.use(requireAuth);
 
+/**
+ * Backfill: link orphaned call records (customer_id IS NULL) to a customer
+ * by normalised phone number (last 10 digits, digits only).
+ * Called after every customer create/update so historical calls are linked immediately.
+ */
+async function backfillCalls(customerId: number, customerName: string, mobile: string) {
+  await query(
+    `UPDATE calls
+     SET customer_id   = $1,
+         customer_name = $2
+     WHERE customer_id IS NULL
+       AND RIGHT(regexp_replace(COALESCE(phone_number, customer_mobile, ''), '[^0-9]', '', 'g'), 10) != ''
+       AND RIGHT(regexp_replace(COALESCE(phone_number, customer_mobile, ''), '[^0-9]', '', 'g'), 10)
+         = RIGHT(regexp_replace($3, '[^0-9]', '', 'g'), 10)`,
+    [customerId, customerName, mobile]
+  );
+}
+
 /** GET /api/customers */
 router.get('/', async (req, res) => {
   try {
@@ -78,7 +96,15 @@ router.post('/', async (req, res) => {
        b.category ?? 'New Lead', b.priority ?? 'Medium',
        b.notes ?? null, b.follow_up_date ?? null, agentId]
     );
-    return res.status(201).json(rows[0]);
+    const newCustomer = rows[0];
+
+    // Backfill: link any existing call records that matched this phone number
+    // but were logged before the customer record existed.
+    if (newCustomer?.id && newCustomer?.mobile) {
+      await backfillCalls(newCustomer.id, newCustomer.name, newCustomer.mobile);
+    }
+
+    return res.status(201).json(newCustomer);
   } catch {
     return res.status(500).json({ error: 'Server error' });
   }
@@ -104,7 +130,11 @@ router.put('/:id', async (req, res) => {
        req.params['id']]
     );
     if (!rows[0]) return res.status(404).json({ error: 'Not found' });
-    return res.json(rows[0]);
+    const updated = rows[0];
+    if (updated?.id && updated?.mobile) {
+      await backfillCalls(updated.id, updated.name, updated.mobile);
+    }
+    return res.json(updated);
   } catch {
     return res.status(500).json({ error: 'Server error' });
   }
@@ -132,7 +162,11 @@ router.patch('/:id', async (req, res) => {
       params
     );
     if (!rows[0]) return res.status(404).json({ error: 'Not found' });
-    return res.json(rows[0]);
+    const patched = rows[0];
+    if (patched?.id && patched?.mobile) {
+      await backfillCalls(patched.id, patched.name, patched.mobile);
+    }
+    return res.json(patched);
   } catch {
     return res.status(500).json({ error: 'Server error' });
   }

@@ -43,11 +43,18 @@ function normalizeCustomer(c: any): Customer {
 }
 
 function normalizeCall(c: any): CallRecord {
+  // customer_id may be NULL when a call was logged before the customer existed.
+  // matched_customer_id comes from the phone-number fallback JOIN in GET /api/calls.
+  const resolvedCustomerId = String(
+    c.customer_id ?? c.matched_customer_id ?? c.customerId ?? ''
+  );
   return {
     id: String(c.id),
-    customerId: String(c.customer_id ?? c.customerId ?? ''),
-    customerName: c.customer_name ?? c.customerName ?? c.customer_display ?? '',
-    customerMobile: c.customer_mobile ?? c.customerMobile ?? c.phone_number ?? '',
+    customerId: resolvedCustomerId,
+    customerName:
+      c.customer_name_resolved ?? c.customer_name ?? c.customerName ?? c.customer_display ?? '',
+    customerMobile:
+      c.customer_mobile_resolved ?? c.customer_mobile ?? c.customerMobile ?? c.phone_number ?? '',
     type: c.type,
     duration: c.duration ?? '0:00',
     durationSeconds: c.duration_seconds ?? c.durationSeconds ?? 0,
@@ -60,6 +67,9 @@ function normalizeCall(c: any): CallRecord {
     reminder_date: c.reminder_date,
     device_id: c.device_id,
     createdAt: c.created_at ?? c.createdAt ?? new Date().toISOString(),
+    matchedCustomerId: c.matched_customer_id ? String(c.matched_customer_id) : undefined,
+    customerCategoryLive: c.customer_category_live ?? undefined,
+    customerNotes: c.customer_notes ?? undefined,
   };
 }
 

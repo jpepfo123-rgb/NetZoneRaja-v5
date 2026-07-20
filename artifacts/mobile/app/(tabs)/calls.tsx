@@ -65,8 +65,8 @@ function CallItem({
       ? colors.outgoing
       : colors.missed;
 
-  // Use live customer category if available, fall back to what was stored on the call
-  const categoryLabel = customer?.category ?? call.category;
+  // Use live customer category if available, fall back to server-joined value, then stored value
+  const categoryLabel = customer?.category ?? call.customerCategoryLive ?? call.category;
   const catColors = categoryLabel ? getCategoryColor(categoryLabel, colors as any) : null;
 
   // Avatar initials
@@ -146,11 +146,21 @@ function CallItem({
           )}
         </View>
 
-        {/* Remarks */}
-        {call.remarks ? (
+        {/* Remarks (call note) or customer notes as fallback */}
+        {(call.remarks || customer?.notes || call.customerNotes) ? (
           <Text style={[styles.remarksText, { color: colors.mutedForeground }]} numberOfLines={1}>
-            {call.remarks}
+            {call.remarks || customer?.notes || call.customerNotes}
           </Text>
+        ) : null}
+
+        {/* Reminder date if set on the call */}
+        {call.reminder_date ? (
+          <View style={styles.agentRow}>
+            <Feather name="bell" size={11} color={colors.primary} />
+            <Text style={[styles.agentText, { color: colors.primary }]}>
+              {'Reminder: ' + new Date(call.reminder_date).toLocaleDateString([], { day: '2-digit', month: 'short', year: '2-digit' })}
+            </Text>
+          </View>
         ) : null}
       </View>
     </TouchableOpacity>
@@ -186,11 +196,43 @@ export default function CallsScreen() {
   const { calls, customers } = useCRM();
   const [filter, setFilter] = useState<FilterType>('All');
 
-  // Build a quick lookup map: customerId → Customer
+  // Primary lookup: customerId → Customer
   const customerMap = useMemo(
     () => new Map(customers.map(c => [c.id, c])),
     [customers],
   );
+
+  // Fallback lookup: normalised phone (last 10 digits) → Customer
+  // Used when a call was logged before the customer record existed so customerId is empty.
+  const phoneMap = useMemo(() => {
+    const m = new Map<string, Customer>();
+    for (const c of customers) {
+      const digits = c.mobile.replace(/[^0-9]/g, '').slice(-10);
+      if (digits.length >= 7) m.set(digits, c);
+      if (c.alternate_number) {
+        const alt = c.alternate_number.replace(/[^0-9]/g, '').slice(-10);
+        if (alt.length >= 7 && !m.has(alt)) m.set(alt, c);
+      }
+    }
+    return m;
+  }, [customers]);
+
+  // Resolve the live customer for a call: prefer ID match, fall back to phone match.
+  const resolveCustomer = (call: CallRecord): Customer | undefined => {
+    if (call.customerId) {
+      const byId = customerMap.get(call.customerId);
+      if (byId) return byId;
+    }
+    // Also try matchedCustomerId (set by remoteAdapter from phone-JOIN)
+    if ((call as any).matchedCustomerId) {
+      const byMatched = customerMap.get((call as any).matchedCustomerId);
+      if (byMatched) return byMatched;
+    }
+    const digits = (call.customerMobile ?? call.phoneNumber ?? '')
+      .replace(/[^0-9]/g, '').slice(-10);
+    if (digits.length >= 7) return phoneMap.get(digits);
+    return undefined;
+  };
 
   const filtered = useMemo(() => {
     if (filter === 'All') return calls;
@@ -243,7 +285,7 @@ export default function CallsScreen() {
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <CallItem call={item} customer={customerMap.get(item.customerId)} colors={colors} />
+          <CallItem call={item} customer={resolveCustomer(item)} colors={colors} />
         )}
         ListEmptyComponent={
           <EmptyState

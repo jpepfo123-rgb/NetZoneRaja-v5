@@ -87,6 +87,10 @@ export interface CallRecord {
   device_id?: string;
   createdAt: string;
   created_at?: string;
+  // Resolved at query time via phone-number JOIN (present even when customer_id was NULL)
+  matchedCustomerId?: string;
+  customerCategoryLive?: string;
+  customerNotes?: string;
 }
 
 export type ReminderType = 'Call Back' | 'Meeting' | 'Follow-up' | 'Payment Due' | 'Other';

@@ -150,6 +150,9 @@ export function CRMProvider({ children }: { children: React.ReactNode }) {
   ) => {
     const rec = await CrmService.addCustomer(data);
     setCustomers(prev => [rec, ...prev]);
+    // Re-fetch calls so any historical records for this phone number are now
+    // linked (the API backfills customer_id on create).
+    CrmService.getCalls().then(setCalls).catch(() => {});
   }, []);
 
   const updateCustomer = useCallback(async (
@@ -158,6 +161,9 @@ export function CRMProvider({ children }: { children: React.ReactNode }) {
   ) => {
     const rec = await CrmService.updateCustomer(id, data);
     setCustomers(prev => prev.map(c => c.id === id ? rec : c));
+    // Re-fetch calls so any historical records for the updated phone number are
+    // re-linked (the API backfills customer_id on update).
+    CrmService.getCalls().then(setCalls).catch(() => {});
   }, []);
 
   const deleteCustomer = useCallback(async (id: string) => {
