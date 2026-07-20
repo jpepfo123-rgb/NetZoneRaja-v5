@@ -8,7 +8,11 @@ import {
   LogOut, 
   UserCircle,
   Menu,
-  ShieldAlert
+  ShieldAlert,
+  Kanban,
+  Target,
+  Receipt,
+  CalendarDays
 } from "lucide-react";
 import { clearToken } from "@/lib/auth";
 import { useRequireAuth } from "@/hooks/use-require-auth";
@@ -36,14 +40,18 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   };
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/calls", label: "Call History", icon: PhoneCall },
-    { href: "/customers", label: "Customers", icon: Users },
-    { href: "/reports", label: "Reports", icon: BarChart3 },
+    { href: "/dashboard",  label: "Dashboard",    icon: LayoutDashboard },
+    { href: "/calls",      label: "Call History", icon: PhoneCall },
+    { href: "/customers",  label: "Customers",    icon: Users },
+    { href: "/pipeline",   label: "Pipeline",     icon: Kanban },
+    { href: "/targets",    label: "Targets",      icon: Target },
+    { href: "/expenses",   label: "Expenses",     icon: Receipt },
+    { href: "/attendance", label: "Attendance",   icon: CalendarDays },
+    { href: "/reports",    label: "Reports",      icon: BarChart3 },
   ];
 
   if (user.role === "admin") {
-    navItems.push({ href: "/agents", label: "Agents", icon: ShieldAlert });
+    navItems.push({ href: "/agents",     label: "Agents",     icon: ShieldAlert });
     navItems.push({ href: "/categories", label: "Categories", icon: BarChart3 });
   }
 

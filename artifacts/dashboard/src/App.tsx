@@ -13,6 +13,10 @@ import ReportsPage from '@/pages/reports';
 import AgentsPage from '@/pages/agents';
 import CategoriesPage from '@/pages/categories';
 import CustomerDetailPage from '@/pages/customer-detail';
+import PipelinePage from '@/pages/pipeline';
+import TargetsPage from '@/pages/targets';
+import ExpensesPage from '@/pages/expenses';
+import AttendancePage from '@/pages/attendance';
 import { DashboardLayout } from '@/components/layout';
 
 // Initialize auth token interceptor for API client
@@ -38,6 +42,10 @@ function ProtectedRoutes() {
         <Route path="/reports" component={ReportsPage} />
         <Route path="/agents" component={AgentsPage} />
         <Route path="/categories" component={CategoriesPage} />
+        <Route path="/pipeline" component={PipelinePage} />
+        <Route path="/targets" component={TargetsPage} />
+        <Route path="/expenses" component={ExpensesPage} />
+        <Route path="/attendance" component={AttendancePage} />
         <Route component={NotFound} />
       </Switch>
     </DashboardLayout>

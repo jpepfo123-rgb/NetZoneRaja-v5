@@ -20,17 +20,25 @@ export default function MoreScreen() {
 
   const menuGroups: { title: string; items: MenuItem[] }[] = [
     {
-      title: 'Management',
+      title: 'Sales',
       items: [
-        { icon: 'tag', label: 'Categories', subtitle: '6 customer categories', route: '/categories', color: colors.accent, bgColor: colors.customerLight },
-        { icon: 'phone-forwarded', label: 'Auto Dialer', subtitle: 'Bulk call management', route: '/dialer', color: colors.primary, bgColor: colors.primaryLight },
+        { icon: 'git-merge',      label: 'Lead Pipeline', subtitle: 'Kanban stage view',         route: '/pipeline',   color: colors.primary,   bgColor: colors.primaryLight },
+        { icon: 'target',         label: 'My Targets',    subtitle: 'Monthly performance goals',  route: '/targets',    color: '#22c55e',         bgColor: '#22c55e18' },
+      ],
+    },
+    {
+      title: 'Operations',
+      items: [
+        { icon: 'file-text',      label: 'Expenses',      subtitle: 'Submit & track expense claims', route: '/expenses',   color: colors.warning,   bgColor: colors.warningLight },
+        { icon: 'tag',            label: 'Categories',    subtitle: 'Customer categories',        route: '/categories', color: colors.accent,    bgColor: colors.customerLight },
+        { icon: 'phone-forwarded',label: 'Auto Dialer',   subtitle: 'Bulk call management',       route: '/dialer',     color: colors.primary,   bgColor: colors.primaryLight },
       ],
     },
     {
       title: 'Analytics',
       items: [
-        { icon: 'bar-chart-2', label: 'Reports', subtitle: 'Daily, weekly & monthly', route: '/reports', color: colors.warning, bgColor: colors.warningLight },
-        { icon: 'shield', label: 'Admin Panel', subtitle: 'User & agent management', route: '/admin', color: colors.secondary, bgColor: colors.newLeadLight, adminOnly: true },
+        { icon: 'bar-chart-2',    label: 'Reports',       subtitle: 'Daily, weekly & monthly',    route: '/reports',    color: colors.warning,   bgColor: colors.warningLight },
+        { icon: 'shield',         label: 'Admin Panel',   subtitle: 'User & agent management',    route: '/admin',      color: colors.secondary, bgColor: colors.newLeadLight, adminOnly: true },
       ],
     },
   ];

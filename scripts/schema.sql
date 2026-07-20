@@ -112,3 +112,62 @@ CREATE TABLE IF NOT EXISTS categories (
   description TEXT,
   created_at  TIMESTAMPTZ  DEFAULT NOW()
 );
+
+-- ---------------------------------------------------------------------------
+-- ERP Modules: Lead Pipeline, Sales Targets, Expenses, Attendance
+-- ---------------------------------------------------------------------------
+
+-- Lead Pipeline stage stored on the customer record
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS pipeline_stage VARCHAR(50) DEFAULT 'New Lead';
+CREATE INDEX IF NOT EXISTS idx_customers_pipeline ON customers(pipeline_stage);
+
+-- Sales Targets: monthly goals per agent
+CREATE TABLE IF NOT EXISTS targets (
+  id               UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_id         UUID          REFERENCES users(id) ON DELETE CASCADE,
+  period           VARCHAR(7)    NOT NULL,          -- YYYY-MM
+  call_target      INTEGER       DEFAULT 50,
+  conv_target      INTEGER       DEFAULT 10,
+  revenue_target   NUMERIC(12,2) DEFAULT 0,
+  created_by       UUID          REFERENCES users(id),
+  created_at       TIMESTAMPTZ   DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ   DEFAULT NOW(),
+  UNIQUE(agent_id, period)
+);
+CREATE INDEX IF NOT EXISTS idx_targets_agent  ON targets(agent_id);
+CREATE INDEX IF NOT EXISTS idx_targets_period ON targets(period);
+
+-- Expenses: agent expense claims
+CREATE TABLE IF NOT EXISTS expenses (
+  id           UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_id     UUID          REFERENCES users(id) ON DELETE CASCADE,
+  agent_name   VARCHAR(255),
+  amount       NUMERIC(12,2) NOT NULL,
+  category     VARCHAR(50)   DEFAULT 'Other',
+  description  TEXT          NOT NULL,
+  status       VARCHAR(20)   DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+  expense_date DATE          DEFAULT CURRENT_DATE,
+  notes        TEXT,
+  created_at   TIMESTAMPTZ   DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ   DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_expenses_agent  ON expenses(agent_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_status ON expenses(status);
+CREATE INDEX IF NOT EXISTS idx_expenses_date   ON expenses(expense_date);
+
+-- Attendance: daily check-in / check-out
+CREATE TABLE IF NOT EXISTS attendance (
+  id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_id   UUID         REFERENCES users(id) ON DELETE CASCADE,
+  agent_name VARCHAR(255),
+  check_in   TIMESTAMPTZ,
+  check_out  TIMESTAMPTZ,
+  date       DATE         DEFAULT CURRENT_DATE,
+  status     VARCHAR(20)  DEFAULT 'present' CHECK (status IN ('present','absent','half_day','leave')),
+  notes      TEXT,
+  created_at TIMESTAMPTZ  DEFAULT NOW(),
+  updated_at TIMESTAMPTZ  DEFAULT NOW(),
+  UNIQUE(agent_id, date)
+);
+CREATE INDEX IF NOT EXISTS idx_attendance_agent ON attendance(agent_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_date  ON attendance(date);

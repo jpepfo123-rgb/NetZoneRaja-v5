@@ -9,6 +9,10 @@ import categoriesRouter from './categories';
 import dashboardRouter from './dashboard';
 import reportsRouter from './reports';
 import agentsRouter from './agents';
+import pipelineRouter from './pipeline';
+import targetsRouter from './targets';
+import expensesRouter from './expenses';
+import attendanceRouter from './attendance';
 
 const router: IRouter = Router();
 
@@ -22,5 +26,10 @@ router.use('/categories', categoriesRouter);
 router.use('/dashboard',  dashboardRouter);
 router.use('/reports',    reportsRouter);
 router.use('/agents',     agentsRouter);
+// ERP modules
+router.use('/pipeline',   pipelineRouter);
+router.use('/targets',    targetsRouter);
+router.use('/expenses',   expensesRouter);
+router.use('/attendance', attendanceRouter);
 
 export default router;
