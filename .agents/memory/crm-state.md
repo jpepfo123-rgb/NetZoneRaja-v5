@@ -1,76 +1,55 @@
 ---
 name: CRM Project State
-description: Net Zone CRM Dialer — what's fully implemented; what still needs EAS build
+description: Net Zone CRM Dialer — key decisions and constraints for consistent future work
 ---
 
-## Status as of 2026-07-20 — KOTLIN LAYER COMPLETE
+## Native Android build requirement
 
-### Kotlin native modules — all 13 files written (2026-07-20)
+The Kotlin native modules (OverlayModule, PhoneStateModule, CallLogModule) only link during an EAS build — they are silent no-ops in Expo Go/Metro. All JS/React Native UI works in Expo Go; the overlay popup, after-call activity, and phone-state monitor require a signed APK.
 
-All `.kt` files live under `artifacts/mobile/modules/*/android/` and are
-copied into the Android project tree by `withKotlinSources.js` during `expo prebuild`.
+**Why:** NativeModules.OverlayModule resolves at runtime via the Kotlin bridge, which is absent in the Metro sandbox.
 
-| File | Module |
-|------|--------|
-| `call-log/android/CallLogModule.kt`          | Reads `CallLog.Calls` ContentProvider |
-| `call-log/android/CallLogPackage.kt`         | ReactPackage for above |
-| `phone-state/android/PhoneStateModule.kt`    | RN bridge: startCallMonitor, cacheAuthToken, cacheCustomerData, openDialer, makeCall; static `emitEvent()` |
-| `phone-state/android/PhoneStatePackage.kt`   | ReactPackage for above |
-| `phone-state/android/CallMonitorService.kt`  | Foreground service; call state machine; broadcasts overlays; starts CallSyncService |
-| `phone-state/android/PhoneStateReceiver.kt`  | Static BroadcastReceiver (manifest); restarts CallMonitorService if killed |
-| `phone-state/android/BootReceiver.kt`        | Starts CallMonitorService on BOOT_COMPLETED |
-| `phone-state/android/CallSyncService.kt`     | Background HTTP POST to `/api/calls`; includes `device_id` (ANDROID_ID) |
-| `overlay/android/OverlayModule.kt`           | RN bridge: canDrawOverlays, requestOverlayPermission, show/dismiss activities |
-| `overlay/android/OverlayPackage.kt`          | ReactPackage for above |
-| `overlay/android/IncomingCallActivity.kt`    | Full-screen overlay on lock screen; customer name from SharedPreferences |
-| `overlay/android/AfterCallActivity.kt`       | Dialog after call ends; category chips + remark input; POSTs to API |
-| `overlay/android/MainApplication.kt`         | SDK 54 entrypoint; registers all 3 custom packages |
+**How to apply:** Do not promise native features work until an EAS APK is installed on a physical Android device.
 
-### Architecture decisions (stay consistent)
+## expo-build-properties must stay at ~1.0.10
 
-- `MainApplication.kt` package: `com.netzone.crmdialer` (applicationId); other modules: `com.netzone.crm.*`
-- SharedPreferences store name: `"NetZoneCRM"` — keys: `auth_token`, `base_url`, `customers_json`
-- `PhoneStateModule.emitEvent()` is static so `CallMonitorService` (plain Android Service, no RN context) can emit to JS when app is in foreground
-- Multi-device: each phone logs in as a distinct agent; `device_id` = `Settings.Secure.ANDROID_ID` added to every call POST
-- SSE (not WebSocket) for dashboard real-time; token via `?token=` query param
-- `expo-build-properties`: pinned to `~1.0.10` for SDK 54 — do not bump without SDK upgrade
-- Call state machine: RINGING→OFFHOOK→IDLE=Incoming; RINGING→IDLE=Missed; OFFHOOK(no prior RINGING)→IDLE=Outgoing
+Pin `expo-build-properties` to `~1.0.10` in `artifacts/mobile/package.json`. The installed Expo SDK is 54.
 
-### Completed JS/TS layer (do not recreate)
-- `modules/call-log/index.ts`, `modules/phone-state/index.ts`, `modules/overlay/index.ts` — TS bridges
-- `components/AfterCallModal.tsx`, `components/CallPopupModal.tsx` — foreground popups
-- `hooks/useAfterCallPopup.ts`, `hooks/useOverlayPermission.ts`
-- `services/remoteAdapter.ts`, `services/offlineQueue.ts`, `services/crmService.ts`
-- `contexts/AuthContext.tsx`, `contexts/CRMContext.tsx`
-- `plugins/withKotlinSources.js`, `plugins/withAndroidPermissions.js`
-- `app.json` (permissions + plugins), `eas.json` (preview=APK, production=AAB)
-- API: SSE bus (`events.ts`), `/api/calls` with broadcastEvent, `/api/dashboard/events`
-- Dashboard: SSE subscription + TanStack Query real-time invalidation
+**Why:** Version 57.x is incompatible with Expo SDK 54 and will break EAS builds.
 
-### Call History ↔ Customer linkage fix (2026-07-20)
+## Package identifiers
 
-**Bug:** Calls logged before a customer record existed had `customer_id = NULL`, so they
-never appeared linked in Call History even after the customer was created.
+- `applicationId` / `MainApplication.kt` package: `com.netzone.crmdialer`
+- All other Kotlin source files: `com.netzone.crm.*`
 
-**Fix — two-layer:**
-1. **API `GET /api/calls`**: Extended LEFT JOIN to also match by normalised phone (last 10
-   digits, digits-only) when `customer_id IS NULL`. Returns `matched_customer_id`,
-   `customer_category_live`, `customer_notes` from the join.
-2. **API `POST/PUT/PATCH /api/customers`**: Runs `backfillCalls()` after every customer
-   save — UPDATE calls SET customer_id/customer_name WHERE phone matches and customer_id IS NULL.
-3. **Mobile `CRMContext`**: After `addCustomer`/`updateCustomer` re-fetches calls so the
-   list reflects the newly linked records immediately.
-4. **Mobile `calls.tsx`**: Builds a `phoneMap` (normalised phone → Customer) as a fallback
-   for when `customerMap.get(customerId)` misses (customerId still empty in local state).
-   Also surfaces `customer.notes` / `call.customerNotes` and `call.reminder_date` in CallItem.
+**Why:** Mixing these causes the Android build to fail at link time.
 
-**Key SQL pattern (normalised phone match):**
-```sql
-RIGHT(regexp_replace(COALESCE(phone_number, customer_mobile, ''), '[^0-9]', '', 'g'), 10)
-  = RIGHT(regexp_replace(c.mobile, '[^0-9]', '', 'g'), 10)
-```
+## PATCH for partial customer updates
 
-### Still needs EAS build
-- All native features (PhoneState, CallLog, Overlay) only link during `eas build --platform android`
-- Use: `bash scripts/build-android.sh` or `eas build --platform android --profile preview`
-- Native modules are no-ops in Expo Go / web preview — this is expected
+Mobile uses `PATCH /api/customers/:id` (not `PUT`) when updating only the close-status fields (`status`, `close_date`, `close_remark`, `close_by`).
+
+**Why:** PUT requires all 16+ columns; partial mobile updates only send a subset.
+
+## SSE for dashboard real-time
+
+Use SSE (not WebSocket) for the `/api/dashboard/events` endpoint. Auth token is passed as `?token=` query param.
+
+**Why:** Design decision made early; changing to WebSocket would require updating both the server and all dashboard consumers.
+
+## SharedPreferences as native bridge
+
+Native Android Activities (overlay, after-call) communicate with React Native via SharedPreferences.
+
+**Why:** Avoids complex inter-process IPC; the overlay Activity reads cached auth token + customer data written by the JS side.
+
+## Graceful degradation on overlay denial
+
+If the user denies or skips overlay permission, the app must continue working normally — no crash, no re-prompt.
+
+**Why:** Overlay is an enhancement; CRM functionality must not depend on it.
+
+## Reminder type field naming
+
+`reminder_type` (snake_case) in both the DB column and the API JSON body. Mapped to `reminder_type` in the TypeScript `Reminder` type.
+
+**Why:** Consistency constraint — changing this requires DB migration + API + mobile adapter changes together.
