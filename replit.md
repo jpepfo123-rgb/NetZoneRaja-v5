@@ -1,85 +1,50 @@
-# Net Zone CRM Dialer
+# Net Zone CRM
 
-A full-stack CRM for managing calls, customers, reminders, and agents. Includes a React/Vite PC dashboard and an Expo React Native mobile app, backed by an Express + PostgreSQL API server.
+A full-stack CRM system for lead management and call tracking, built for telecom/sales teams.
 
-## Run & Operate
+## Architecture
 
-Workflows start automatically on Replit:
+This is a pnpm monorepo with three main services:
 
-| Workflow | What it runs | Preview |
-|---|---|---|
-| `artifacts/api-server: API Server` | Express API on port 8080 | `/api` |
-| `artifacts/dashboard: web` | Vite dev server | `/dashboard/` |
-| `artifacts/mobile: expo` | Expo dev server | `/` (mobile pane) |
+| Service | Path | Stack |
+|---------|------|-------|
+| API Server | `artifacts/api-server` | Node.js, Express, PostgreSQL (pg), JWT auth, Pino |
+| Dashboard | `artifacts/dashboard` | React, Vite, Tailwind CSS, Radix UI, TanStack Query |
+| Mobile Dialer | `artifacts/mobile` | Expo (React Native), Expo Router, TanStack Query |
 
-Manually from workspace root:
+Shared libraries live under `lib/`:
+- `lib/db` — Drizzle ORM schema and DB config
+- `lib/api-zod` — Zod-based API type definitions
+- `lib/api-client-react` — Shared React hooks for API consumption
 
-```sh
-pnpm install                                         # install all dependencies
-pnpm --filter @workspace/api-server run dev          # API server
-pnpm --filter @workspace/dashboard run dev           # PC dashboard
-pnpm --filter @workspace/mobile run dev              # Expo mobile
-pnpm run typecheck                                   # full typecheck
-```
+## Running the project
 
-## Database Setup
+All services start automatically via configured workflows. After `pnpm install`, restart each workflow:
 
-Replit provides PostgreSQL automatically (`DATABASE_URL` is pre-set). To initialise the schema:
+- **API Server**: `pnpm --filter @workspace/api-server run dev` — builds with esbuild, then starts on `$PORT`
+- **Dashboard**: `pnpm --filter @workspace/dashboard run dev` — Vite dev server on `$PORT` at `/dashboard/`
+- **Mobile**: `pnpm --filter @workspace/mobile run dev` — Expo Metro bundler on `$PORT`
 
-```sh
-psql $DATABASE_URL -f scripts/schema.sql
-```
+## Database
 
-The API server also calls `initDb()` on every startup, which seeds the default users (see Demo Credentials below) using `ON CONFLICT DO NOTHING`.
+Uses Replit's built-in PostgreSQL. The schema is in `scripts/schema.sql` (idempotent — safe to re-run). The API server calls `initDb()` on startup to seed default users and sample data.
 
-## Demo Credentials
+Default login credentials:
+- **Admin**: `admin` / `admin123`
+- **Agent 1**: `agent1` / `agent123`
+- **Agent 2**: `agent2` / `agent123`
 
-| Role  | Username | Password  |
-|-------|----------|-----------|
-| Admin | admin    | admin123  |
-| Agent | agent1   | agent123  |
-| Agent | agent2   | agent123  |
+## Environment variables
 
-## Stack
+| Key | Notes |
+|-----|-------|
+| `DATABASE_URL` | Auto-provided by Replit (do not set manually) |
+| `SESSION_SECRET` | Configured as a Replit Secret — used for JWT signing |
+| `NODE_ENV` | Set to `development` in shared env vars |
+| `PORT` | Auto-assigned per workflow by Replit |
 
-- **Runtime:** Node.js 24, pnpm workspaces, TypeScript 5.9
-- **API:** Express 5, PostgreSQL (`pg` pool), JWT auth, bcrypt
-- **Dashboard:** React 19, Vite 7, shadcn/ui, Recharts, TanStack Query, wouter
-- **Mobile:** Expo SDK 54, Expo Router, React Native 0.81
-- **Native modules (Android):** Kotlin — PhoneStateModule, CallLogModule, OverlayModule (require EAS build)
+## Mobile native modules
 
-## Where Things Live
+The mobile app includes custom Android native modules (`CallLogModule`, `OverlayModule`) for call tracking and an incoming call overlay. These require a native Android build via EAS — they do not run in Expo Go. See `artifacts/mobile/android/` for the native code.
 
-```
-artifacts/
-  api-server/src/
-    routes/          auth, customers, calls, remarks, reminders, categories, agents, dashboard, reports
-    lib/database.ts  pg Pool + initDb() seeder
-    middlewares/     JWT requireAuth / requireAdmin
-  dashboard/src/
-    pages/           Dashboard, Calls, Customers, Reports, Agents, Categories
-    lib/api-client-react/   OpenAPI-generated React Query hooks
-  mobile/
-    app/(tabs)/      Dashboard, Customers, Calls, Reminders, More
-    app/dialer.tsx   Auto Dialer
-    contexts/        AuthContext, CRMContext
-    modules/*/android/  Kotlin native modules (need EAS build)
-scripts/
-  schema.sql         PostgreSQL DDL — idempotent, safe to re-run
-```
-
-## User Preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-- Always use the Replit workflow tool to start services, not `npx expo start` directly.
-- The mobile workflow requires `REPLIT_EXPO_DEV_DOMAIN` and `REPLIT_DEV_DOMAIN` which Replit injects automatically.
-- Native Android features (dialer overlay, call log, phone state monitor) require an EAS APK build — they do not work in Expo Go.
-- `expo-build-properties` is pinned to `~1.0.10` (SDK 54 compatible). Do not bump it without also upgrading the Expo SDK.
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure and TypeScript project references.
-- See the `expo` skill for Expo-specific guidelines.
+## User preferences

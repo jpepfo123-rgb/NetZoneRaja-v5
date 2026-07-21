@@ -2,7 +2,7 @@
   "expo": {
     "name": "Net Zone CRM Dialer",
     "slug": "net-zone-crm-dialer",
-    "owner": "jpepfo123",
+    "owner": "rajasolanki",
     "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -77,6 +77,10 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "extra": {}
+    "extra": {
+      "eas": {
+        "projectId": "c2b4e3ee-2d3f-48bb-80b6-5dcf6a7510f9"
+      }
+    }
   }
 }
