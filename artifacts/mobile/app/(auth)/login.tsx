@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 
-const PRODUCTION_API_URL = 'https://net-zone-dialerzip--solankimadansi3.replit.app/api';
+const PRODUCTION_API_URL = 'https://zip-repl--megvalrahulsing.replit.app/api';
 
 /** Build the default API URL — production URL as default */
 function defaultServerUrl(): string {

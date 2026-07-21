@@ -66,7 +66,7 @@ export default function SettingsScreen() {
   const { user, logout, isRemote } = useAuth();
   const { customers, calls, reminders, reload } = useCRM();
 
-  const PRODUCTION_API_URL = 'https://net-zone-dialerzip--solankimadansi3.replit.app/api';
+  const PRODUCTION_API_URL = 'https://zip-repl--megvalrahulsing.replit.app/api';
   const [serverUrl, setServerUrl] = useState(user?.serverUrl ?? PRODUCTION_API_URL);
   const [editingUrl, setEditingUrl] = useState(false);
   const [connStatus, setConnStatus] = useState<ConnectionStatus>('idle');
