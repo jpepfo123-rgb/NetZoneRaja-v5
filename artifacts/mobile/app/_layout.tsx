@@ -2,14 +2,6 @@ import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// react-native-keyboard-controller 1.18.x crashes with RN 0.81 New Architecture.
-// Wrapped in try/catch; if import fails we use a plain View passthrough.
-let KeyboardProvider: React.ComponentType<{ children: React.ReactNode }>;
-try {
-  KeyboardProvider = require('react-native-keyboard-controller').KeyboardProvider;
-} catch {
-  KeyboardProvider = ({ children }) => <>{children}</>;
-}
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
@@ -119,17 +111,15 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <AuthProvider>
-                <CRMProvider>
-                  <AppWithAfterCallPopup>
-                    <OverlayPermissionGate>
-                      <RootLayoutNav />
-                    </OverlayPermissionGate>
-                  </AppWithAfterCallPopup>
-                </CRMProvider>
-              </AuthProvider>
-            </KeyboardProvider>
+            <AuthProvider>
+              <CRMProvider>
+                <AppWithAfterCallPopup>
+                  <OverlayPermissionGate>
+                    <RootLayoutNav />
+                  </OverlayPermissionGate>
+                </AppWithAfterCallPopup>
+              </CRMProvider>
+            </AuthProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
       </ErrorBoundary>
